@@ -19,7 +19,7 @@ class LabelsWidget extends StatelessWidget {
         Text(
           labelQuestion,
           style: const TextStyle(
-              color: Colors.black54, fontSize: 15, fontWeight: FontWeight.w300),
+              color: Colors.black54, fontSize: 15, fontWeight: FontWeight.w300,),
         ),
         const SizedBox(height: 10),
         GestureDetector(
