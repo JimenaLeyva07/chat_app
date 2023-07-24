@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../helpers/show_alert.dart';
+import '../services/auth_service.dart';
 import '../widgets/blue_button.dart';
 import '../widgets/custom_input.dart';
 import '../widgets/labels_widget.dart';
@@ -42,18 +45,20 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-class FormWidget extends StatefulWidget {
+class FormWidget extends ConsumerStatefulWidget {
   const FormWidget({super.key});
 
   @override
-  State<FormWidget> createState() => _FormWidgetState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _FormWidgetState();
 }
 
-class _FormWidgetState extends State<FormWidget> {
+class _FormWidgetState extends ConsumerState<FormWidget> {
   final TextEditingController emailTextController = TextEditingController();
   final TextEditingController passwordTextController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = ref.read(authNotifierProvider.notifier);
+
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -71,7 +76,32 @@ class _FormWidgetState extends State<FormWidget> {
             textController: passwordTextController,
             isPassword: true,
           ),
-          const BlueButton(buttonLabel: 'Login')
+          BlueButton(
+            buttonLabel: 'Login',
+            onPressed: ref.watch(authNotifierProvider).authenticating
+                ? null
+                : () async {
+                    //to exit the keyboard
+                    FocusScope.of(context).unfocus();
+
+                    final bool loginResponse = await authService.login(
+                      emailTextController.text.trim(),
+                      passwordTextController.text.trim(),
+                    );
+
+                    if (loginResponse) {
+                      Navigator.pushReplacementNamed(context, 'users');
+                      // connect to sockets...
+                    } else {
+                      //Show Alert
+                      showAlert(
+                        context: context,
+                        title: 'Incorrect Login',
+                        content: 'Check your credentials',
+                      );
+                    }
+                  },
+          )
         ],
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -15,10 +17,10 @@ class _UsersPageState extends State<UsersPage> {
 
   final List<UserModel> users = <UserModel>[
     const UserModel(
-      uid: '1',
       name: 'Jimena',
       email: 'jimena@test.com',
       online: true,
+      uid: '1',
     ),
     const UserModel(
       uid: '2',
@@ -37,11 +39,21 @@ class _UsersPageState extends State<UsersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Name'),
+        title: Consumer(
+          builder: (BuildContext context, WidgetRef ref, Widget? child) {
+            return Text(ref.watch(authNotifierProvider).user.name);
+          },
+        ),
         elevation: 1,
         backgroundColor: Colors.white,
-        leading:
-            IconButton(onPressed: () {}, icon: const Icon(Icons.exit_to_app)),
+        leading: IconButton(
+          onPressed: () {
+            // TODO(Jimena): disconnect from socket server
+            Navigator.pushReplacementNamed(context, 'login');
+            AuthService.deleteToken();
+          },
+          icon: const Icon(Icons.exit_to_app),
+        ),
         actions: <Widget>[
           Container(
             margin: const EdgeInsets.only(right: 10),
@@ -72,7 +84,7 @@ class _UsersPageState extends State<UsersPage> {
 
   loadUsers() async {
     // monitor network fetch
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future<dynamic>.delayed(const Duration(milliseconds: 1000));
     // if failed,use refreshFailed()
     _refreshController.refreshCompleted();
   }
