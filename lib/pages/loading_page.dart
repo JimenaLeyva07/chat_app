@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/auth_service.dart';
+import '../services/socket_service.dart';
 import 'login_page.dart';
 import 'users_page.dart';
 
@@ -27,21 +28,25 @@ class LoadingPage extends ConsumerWidget {
 
   Future<void> checkLoginState(BuildContext context, WidgetRef ref) async {
     final AuthService authService = ref.read(authNotifierProvider.notifier);
+    final SocketService socketService =
+        ref.read(socketServiceProvider.notifier);
     final bool authenticated = await authService.isLoggedIn();
 
     if (authenticated) {
-      // TODO(Jimena): connect to socket service
+      socketService.connect();
       Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => UsersPage(),
-          ));
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const UsersPage(),
+        ),
+      );
     } else {
       Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => LoginPage(),
-          ));
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const LoginPage(),
+        ),
+      );
     }
   }
 }

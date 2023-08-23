@@ -4,51 +4,39 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/chat_service.dart';
+import '../services/get_users_service.dart';
+import '../services/socket_service.dart';
 
-class UsersPage extends StatefulWidget {
+class UsersPage extends ConsumerStatefulWidget {
   const UsersPage({super.key});
 
   @override
-  State<UsersPage> createState() => _UsersPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _UsersPageState();
 }
 
-class _UsersPageState extends State<UsersPage> {
+class _UsersPageState extends ConsumerState<UsersPage> {
   final RefreshController _refreshController = RefreshController();
+  final GetUsersService usersService = GetUsersService();
 
-  final List<UserModel> users = <UserModel>[
-    const UserModel(
-      name: 'Jimena',
-      email: 'jimena@test.com',
-      online: true,
-      uid: '1',
-    ),
-    const UserModel(
-      uid: '2',
-      name: 'Isabela',
-      email: 'isabela@test.com',
-    ),
-    const UserModel(
-      uid: '3',
-      name: 'Matías',
-      email: 'matias@test.com',
-      online: true,
-    ),
-  ];
+  List<UserModel> users = <UserModel>[];
+
+  @override
+  void initState() {
+    super.initState();
+    loadUsers();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Consumer(
-          builder: (BuildContext context, WidgetRef ref, Widget? child) {
-            return Text(ref.watch(authNotifierProvider).user.name);
-          },
-        ),
+        title: Text(ref.watch(authNotifierProvider).user.name),
         elevation: 1,
         backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () {
-            // TODO(Jimena): disconnect from socket server
+            ref.read(socketServiceProvider.notifier).disconnect();
             Navigator.pushReplacementNamed(context, 'login');
             AuthService.deleteToken();
           },
@@ -57,14 +45,15 @@ class _UsersPageState extends State<UsersPage> {
         actions: <Widget>[
           Container(
             margin: const EdgeInsets.only(right: 10),
-            child: Icon(
-              Icons.check_circle,
-              color: Colors.green[300],
-            ),
-            //     const Icon(
-            //   Icons.offline_bolt,
-            //   color: Colors.red,
-            // ),
+            child: ref.watch(socketServiceProvider) == ServerStatus.Online
+                ? Icon(
+                    Icons.check_circle,
+                    color: Colors.green[300],
+                  )
+                : const Icon(
+                    Icons.offline_bolt,
+                    color: Colors.red,
+                  ),
           )
         ],
       ),
@@ -82,9 +71,9 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  loadUsers() async {
-    // monitor network fetch
-    await Future<dynamic>.delayed(const Duration(milliseconds: 1000));
+  Future<void> loadUsers() async {
+    users = await usersService.getUsers();
+    setState(() {});
     // if failed,use refreshFailed()
     _refreshController.refreshCompleted();
   }
@@ -110,7 +99,7 @@ class UsersListView extends StatelessWidget {
   }
 }
 
-class UserListTile extends StatelessWidget {
+class UserListTile extends ConsumerWidget {
   const UserListTile({
     required this.user,
     super.key,
@@ -119,7 +108,7 @@ class UserListTile extends StatelessWidget {
   final UserModel user;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
       leading: CircleAvatar(
         child: Text(user.name.substring(0, 2)),
@@ -137,6 +126,11 @@ class UserListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(100),
         ),
       ),
+      onTap: () {
+        final chatService = ref.read(chatServiceNotifierProvider.notifier);
+        chatService.userDestiny = user;
+        Navigator.pushNamed(context, 'chat');
+      },
     );
   }
 }

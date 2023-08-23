@@ -13,8 +13,7 @@ class UserModel {
         uid: json['uid'].toString(),
       );
 
-  factory UserModel.empty() =>
-      const UserModel(name: '', email: '', online: false, uid: 'uid');
+  factory UserModel.empty() => const UserModel(name: '', email: '', uid: 'uid');
 
   final String name;
   final String email;
@@ -40,4 +39,9 @@ class UserModel {
         'online': online,
         'uid': uid,
       };
+
+  @override
+  String toString() {
+    return 'Username: $name, email: $email, online: $online, uid: $uid';
+  }
 }

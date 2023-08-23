@@ -137,4 +137,4 @@ class AuthService with ChangeNotifier {
 
 final ChangeNotifierProvider<AuthService> authNotifierProvider =
     ChangeNotifierProvider(
-        (ChangeNotifierProviderRef<Object?> ref) => AuthService());
+        (ChangeNotifierProviderRef<Object?> ref) => AuthService(),);

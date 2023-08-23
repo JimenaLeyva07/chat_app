@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../helpers/show_alert.dart';
 import '../services/auth_service.dart';
+import '../services/socket_service.dart';
 import '../widgets/blue_button.dart';
 import '../widgets/custom_input.dart';
 import '../widgets/labels_widget.dart';
@@ -58,6 +59,8 @@ class _FormWidgetState extends ConsumerState<FormWidget> {
   @override
   Widget build(BuildContext context) {
     final AuthService authService = ref.read(authNotifierProvider.notifier);
+    final SocketService socketService =
+        ref.read(socketServiceProvider.notifier);
 
     return Container(
       margin: const EdgeInsets.only(top: 40),
@@ -90,8 +93,8 @@ class _FormWidgetState extends ConsumerState<FormWidget> {
                     );
 
                     if (loginResponse) {
+                      socketService.connect();
                       Navigator.pushReplacementNamed(context, 'users');
-                      // connect to sockets...
                     } else {
                       //Show Alert
                       showAlert(
